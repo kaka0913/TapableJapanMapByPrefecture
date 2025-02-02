@@ -85,3 +85,16 @@ class AMJMRegionLayer: CAShapeLayer {
         prefectureLayer(for: prefecture)?.fillColor = color.cgColor
     }
 }
+
+extension AMJMRegionLayer {
+    // 指定された点が都道府県の領域内にあるかをチェックするメソッド
+    func hitTest(point: CGPoint) -> AMPrefecture? {
+        for (index, layer) in prefectureLayers.enumerated() {
+            if let path = layer.path,
+               UIBezierPath(cgPath: path).contains(point) {
+                return region.prefectures[index]
+            }
+        }
+        return nil
+    }
+}
