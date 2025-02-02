@@ -38,6 +38,13 @@ import UIKit
     private var mapSize: CGFloat = 0
     private var regionLayers = [AMJMRegionLayer]()
     
+    // コールバックのクロージャを追加
+    public var didSelectPrefecture: ((AMPrefecture) -> Void)?
+    public var didDeselectPrefecture: ((AMPrefecture) -> Void)?
+    
+    // 選択状態を管理する変数を追加
+    private var selectedPrefectures: Set<AMPrefecture> = []
+    
     // MARK:- Initialize
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder:aDecoder)
@@ -46,6 +53,7 @@ import UIKit
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
+        setupGestureRecognizer()
     }
     
     convenience init() {
@@ -126,5 +134,29 @@ import UIKit
     public func setFillColor(color: UIColor, prefecture: AMPrefecture) {
         fillColors[prefecture] = color
         regionLayer(for: prefecture)?.setFillColor(color: color, prefecture: prefecture)
+    }
+    
+    // タップジェスチャーの設定を追加
+    private func setupGestureRecognizer() {
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        addGestureRecognizer(tapGesture)
+    }
+    
+    // タップ処理を実装
+    @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
+        let location = gesture.location(in: self)
+        
+        for layer in regionLayers {
+            if let prefecture = layer.hitTest(point: location) {
+                if selectedPrefectures.contains(prefecture) {
+                    selectedPrefectures.remove(prefecture)
+                    didDeselectPrefecture?(prefecture)
+                } else {
+                    selectedPrefectures.insert(prefecture)
+                    didSelectPrefecture?(prefecture)
+                }
+                break
+            }
+        }
     }
 }
